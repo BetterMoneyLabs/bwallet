@@ -5,11 +5,11 @@ import { useUserData } from './store/user.ts'
 const router = useRouter()
 const userData = useUserData()
 
-router.beforeEach((to, from) => {
+router.beforeEach((to, _from) => {
     if (
         (
-            to.meta.requiresAuth === undefined
-            || to.meta.requiresAuth === true
+            to.meta['requiresAuth'] === undefined
+            || to.meta['requiresAuth'] === true
         ) && !userData.isAuthenticated()
     ) {
         console.log('App/beforeEach: user is not authenticated, redirecting to auth-log')
@@ -20,6 +20,7 @@ router.beforeEach((to, from) => {
             },
         }
     }
+    return true
 })
 </script>
 

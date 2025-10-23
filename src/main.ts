@@ -12,10 +12,13 @@ import WalletHome from './WalletHome.vue'
 import LogOut from './LogOut.vue'
 import AuthRestore from './AuthRestore.vue'
 import { useUserData } from './store/user.ts'
+import type { RouteLocationNormalized, NavigationGuardReturn } from 'vue-router'
 
 import 'bootstrap/dist/css/bootstrap.min.css'
 
-function routeGuardAuthUserHome(to, from) {
+function routeGuardAuthUserHome(
+        _to: RouteLocationNormalized, _from: RouteLocationNormalized
+    ): NavigationGuardReturn {
     const user = useUserData()
     if (user.isAuthenticated()) {
         return {name: 'wallet-home'}

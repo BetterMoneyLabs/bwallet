@@ -2,11 +2,12 @@
 import { ref } from 'vue'
 import useBasisClient from './BasisClient.ts'
 
-const outboundNotes = ref(null)
+const outboundNotes = ref<null|object>(null)
 const bClient = useBasisClient()
-const { pkBytes } = defineProps({
+const { pkBytes } = defineProps<{
     pkBytes: Uint8Array,
-})
+}>()
+
 bClient.getNotesByIssuer(pkBytes).then(data => {
     outboundNotes.value = data
 })

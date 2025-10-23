@@ -53,13 +53,13 @@ class BasisClient {
         }
     }
 
-    async createNote(skBytes: Uint8Array, pkBytes: Uint8Array, targetAddress: string, amount: float): Promise<object> {
+    async createNote(_skBytes: Uint8Array, _pkBytes: Uint8Array, _targetAddress: string, _amount: number): Promise<object> {
         console.log("basisClient/createNote: TO BE DONE")
         return {}
     }
 }
 
-export default function useBasisClient() {
+export default function useBasisClient(): BasisClient {
     const BASIS_SERVER_BASE_URL = "http://213.239.193.208:3001"
     const bClient = new BasisClient(BASIS_SERVER_BASE_URL)
     return bClient

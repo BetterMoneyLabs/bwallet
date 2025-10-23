@@ -2,11 +2,12 @@
 import { ref } from 'vue'
 import useBasisClient from './BasisClient.ts'
 
-const keyStatus = ref(null)
+const keyStatus = ref<null|object>(null)
 const bClient = useBasisClient()
-const { pkBytes } = defineProps({
+const { pkBytes } = defineProps<{
     pkBytes: Uint8Array,
-})
+}>()
+
 bClient.getKeyStatus(pkBytes).then(data => {
     keyStatus.value = data
 })

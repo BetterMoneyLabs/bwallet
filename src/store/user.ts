@@ -92,7 +92,21 @@ export const useUserData = defineStore('localUserData', () => {
     }
 })
 
+export const useAuthUserData = defineStore('localAuthUserData', () => {
+    const _userData = useUserData()
+    const seed = computed(() => {
+        if (!_userData.seed) {
+            throw new Error('User seed is not set')
+        }
+        return _userData.seed
+    })
+    return {
+        seed
+    }
+})
+
 // HRM
 if (import.meta.hot) {
     import.meta.hot.accept(acceptHMRUpdate(useUserData, import.meta.hot))
+    import.meta.hot.accept(acceptHMRUpdate(useAuthUserData, import.meta.hot))
 }

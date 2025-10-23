@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Wallet, SecretKeys, SecretKey, Address } from 'ergo-lib-wasm-browser'
-import * as ergo from 'ergo-lib-wasm-browser'
+import { SecretKeys, SecretKey, Address, NetworkPrefix } from 'ergo-lib-wasm-browser'
+// import * as ergo from 'ergo-lib-wasm-browser'
 import useBasisClient from './BasisClient.ts'
 import { blake2b } from 'blakejs';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
-import BigNumber from 'bignumber.js';
+// import BigNumber from 'bignumber.js';
 
-const { skBytes, pkBytes } = defineProps({
+const { skBytes, pkBytes } = defineProps<{
     skBytes: Uint8Array,
     pkBytes: Uint8Array,
-})
+}>()
 const bClient = useBasisClient()
-const errorMsg = ref(null)
+const errorMsg = ref("")
 const demoAddress = "9gZ2dA88NkKVST3mZVEFHz8g7PFhysNQbpbi88iMBMau5qH6WMB"
 const targetAddress = ref(demoAddress)
 const amount = ref(10)
@@ -27,36 +27,50 @@ function checkTargetAddress(): boolean {
 }
 
 
-function bytesToBigNumber(bytes: Uint8Array): BigNumber {
-  let result = new BigNumber(0);
-  for (let i = 0; i < bytes.length; i++) {
-    result = result.multipliedBy(256).plus(bytes[i]);
-  }
-  return result;
-}
+// function bytesToBigNumber(bytes: Uint8Array): BigNumber {
+//   let result = new BigNumber(0);
+//   for (let i = 0; i < bytes.length; i++) {
+//     result = result.multipliedBy(256).plus(bytes[i]);
+//   }
+//   return result;
+// }
 
-function generateRandomBigInt(max: bigint): bigint {
-    const bitLength = max.toString(2).length;
-    const byteLength = Math.ceil(bitLength / 8);
-    let result: bigint;
-    do {
-        const randomBytesArray = randomBytes(byteLength);
-        result = 0n;
-        for (let i = 0; i < randomBytesArray.length; i++) {
-            result = (result << 8n) | BigInt(randomBytesArray[i]);
+// function generateRandomBigInt(max: bigint): bigint {
+//     const bitLength = max.toString(2).length;
+//     const byteLength = Math.ceil(bitLength / 8);
+//     let result: bigint;
+//     do {
+//         const randomBytesArray = randomBytes(byteLength);
+//         result = 0n;
+//         for (let i = 0; i < randomBytesArray.length; i++) {
+//             result = (result << 8n) | BigInt(randomBytesArray[i]);
+//         }
+//         const mask = (1n << BigInt(bitLength)) - 1n;
+//         result = result & mask;
+//     } while (result >= max);
+//     return result;
+// }
+
+function bytesToBigInt(bytes: Uint8Array): bigint {
+    let result = 0n;
+    for (let i = 0; i < bytes.length; i++) {
+        const itemVal = bytes[i]
+        if (itemVal === undefined) {
+            // should not happen, it is for type checker
+            throw new Error("Item value is undefined")
         }
-        const mask = (1n << BigInt(bitLength)) - 1n;
-        result = result & mask;
-    } while (result >= max);
+        result = (result << 8n) | BigInt(itemVal);
+    }
     return result;
 }
 
-function bytesToBigInt(bytes: Uint8Array): bigint {
-     let result = 0n;
-     for (let i = 0; i < bytes.length; i++) {
-         result = (result << 8n) | BigInt(bytes[i]);
-     }
-     return result;
+function bigIntToBytes(bigint: bigint, numBytes: number): Uint8Array {
+    const bytes = new Uint8Array(numBytes);
+    for (let i = 0; i < numBytes; i++) {
+        // Start from the end for big-endian (most significant byte first)
+        bytes[numBytes - 1 - i] = Number((bigint >> BigInt(8 * i)) & 0xFFn)
+    }
+    return bytes;
 }
 
 // For secp256k1 curve (common in blockchain)
@@ -68,7 +82,7 @@ function bytesToBigInt(bytes: Uint8Array): bigint {
 //     val a: GroupElement = g.exp(r.bigInteger)
 //     val e = scorex.crypto.hash.Blake2b256(a.getEncoded.toArray ++ msg ++ pk.getEncoded.toArray)
 //     val z = (r + secretKey * BigInt(e)) % CryptoConstants.groupOrder
-function signMessage(skBytes: Uint8Array, msg: Uint8Array): Promise<Uint8Array> {
+function signMessage(skBytes: Uint8Array, msg: Uint8Array): Uint8Array {
 // ): Promise<{
 //   pk: Uint8Array;
 //   a: Uint8Array;
@@ -99,10 +113,10 @@ function signMessage(skBytes: Uint8Array, msg: Uint8Array): Promise<Uint8Array> 
     const e = bytesToBigInt(blake2b(hashInput, undefined, 32))
   
     // z = (r + secretKey * BigInt(e)) % groupOrder
-    const eBigInt = bytesToBigInt(e)
+    // const eBigInt = bytesToBigInt(e)
     const z = (r + secretKey * e) % groupOrder
   
-    return a + z 
+    return Uint8Array.from([...aBytes, ...bigIntToBytes(z, 32)])
 }
 
 function checkAmount(): boolean {
@@ -114,24 +128,24 @@ function checkAmount(): boolean {
     return true
 }
 
-function convertToBytes(inputNumber: integer, numBytes: integer): Uint8Array {
+function convertToBytes(inputNumber: number, numBytes: number): Uint8Array {
     const buffer = new ArrayBuffer(numBytes)
     const view = new DataView(buffer)
     view.setUint32(0, inputNumber, false) // false for big-endian
     return new Uint8Array(buffer)
 }
 
-function getUnixTime(): integer {
+function getUnixTime(): number {
     return Math.floor(Date.now() / 1000)
 }
 
-function bytesToHex(input: uint8Array): string {
+function bytesToHex(input: Uint8Array): string {
     return Array.from(input)
         .map(byte => byte.toString(16).padStart(2, '0'))
         .join('');
 }
 
-async function onFormSubmit() {
+async function onFormSubmit(): Promise<void> {
     if (!checkTargetAddress() || !checkAmount()) {
         return
     }
@@ -139,12 +153,15 @@ async function onFormSubmit() {
     const sk = SecretKey.from_bytes(skBytes)
     const sks = new SecretKeys()
     sks.add(sk)
-    const wallet = Wallet.from_secrets(sks)
-    const targetAddressBytes = Address.from_base58(targetAddress.value).to_bytes()
+    // const wallet = Wallet.from_secrets(sks)
+    const targetAddressBytes = Address.from_base58(targetAddress.value).to_bytes(NetworkPrefix.Mainnet)
     const targetPKBytes = targetAddressBytes.slice(1, targetAddressBytes.length - 4)
     const timestamp = getUnixTime()
-    const payloadBytes = targetPKBytes + convertToBytes(amount.value, 8)
-        + convertToBytes(timestamp, 8)
+    const payloadBytes = Uint8Array.from([
+        ...targetPKBytes,
+        ...convertToBytes(amount.value, 8),
+        ...convertToBytes(timestamp, 8)
+    ])
     //const sign = wallet.sign_message_using_p2pk(sk.get_address(), payloadBytes)
     const sign = signMessage(skBytes, payloadBytes)
 
