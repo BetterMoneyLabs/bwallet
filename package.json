@@ -1,0 +1,49 @@
+{
+  "name": "bwallet",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "run-p type-check \"build-only {@}\" --",
+    "preview": "vite preview",
+    "build-only": "vite build",
+    "type-check": "vue-tsc --build",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@noble/curves": "^2.0.1",
+    "@popperjs/core": "^2.11.8",
+    "bignumber.js": "^9.3.1",
+    "bip32": "^5.0.0",
+    "bip39": "^3.1.0",
+    "blakejs": "^1.2.1",
+    "bootstrap": "^5.3.8",
+    "ergo-lib-wasm-browser": "^0.28.0",
+    "ergo-lib-wasm-nodejs": "^0.28.0",
+    "pinia": "^3.0.3",
+    "tiny-secp256k1": "^2.2.4",
+    "vite-plugin-wasm": "^3.5.0",
+    "vue": "^3.5.22",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@tsconfig/node22": "^22.0.2",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vue/eslint-config-typescript": "^14.6.0",
+    "@vue/tsconfig": "^0.8.1",
+    "eslint": "^9.37.0",
+    "eslint-plugin-vue": "^10.5.0",
+    "jiti": "^2.6.1",
+    "npm-run-all": "^4.1.5",
+    "sass": "^1.93.2",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.7",
+    "vite-plugin-node-polyfills": "^0.24.0",
+    "vite-plugin-vue-devtools": "^8.0.2",
+    "vue-tsc": "^3.1.1"
+  }
+}
